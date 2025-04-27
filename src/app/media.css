@@ -1,0 +1,15 @@
+@media screen and (min-width:0px) and (max-width:1024px){
+  .slick-arrow.slick-prev {
+    position: absolute;
+    top:-11%;
+    left:85%;
+  }
+  .slick-arrow.slick-next{
+    position: absolute;
+    top:-11%;
+    left:93%;
+  }
+  .bestselling-product::after{
+    display: none;
+  }
+}
