@@ -138,6 +138,7 @@ export default function Home() {
        scrollTrigger:{
            trigger:cart_item.current,
            start:'-15% 40%',
+           markers:true
        }  
     });
     })
@@ -154,8 +155,8 @@ export default function Home() {
             <Container fluid>
               <Container>
                     <Row className="gx-3 gy-3" ref={cart_item}>
-                      <Link href={'/productdetail/1'}>
                       <Col lg={3} className="card-item animation">
+                           <Link href={'/productdetail/1'} className="text-decoration-none">
                           <Card className="shadow-lg">
                             <Card.Img variant="top" src="https://wscubetech.co/Assignments/furniture/storage/app/public/uploads/images/products/1617829052195Caroline%20Study%20Tables__.jpg" />
                             <Card.Body>
@@ -176,10 +177,12 @@ export default function Home() {
                                </div>
                             </Card.Body>
                           </Card>
+                          </Link>
                         </Col>
-                        </Link>
 
+                        
                         <Col lg={3} className="card-item animation">
+                        <Link href={'/productdetail/1'}>
                           <Card  className="shadow-lg">
                             <Card.Img variant="top" src="https://wscubetech.co/Assignments/furniture/storage/app/public/uploads/images/products/1617829052195Caroline%20Study%20Tables__.jpg" />
                             <Card.Body>
@@ -200,6 +203,7 @@ export default function Home() {
                                </div>
                             </Card.Body>
                           </Card>
+                          </Link>
                         </Col>
 
 
