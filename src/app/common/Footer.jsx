@@ -54,9 +54,9 @@ export default function Footer() {
             <ul className="p-1 deskstop-footer-menu">
                 <h3 className="  mb-4 fw-bold">My Account</h3>
                 <li className=" fs-6 mb-2 fw-medium"><span><Link href={'/dashboard'} style={{color:'black',textDecoration:'none'}}>My Dashboard</Link></span></li>
-                <li className=" fs-6 mb-2 fw-medium"><Link href={'/wishlist'} style={{color:'black',textDecoration:'none'}}><span>Wishlist</span></Link></li>
-                <li className=" fs-6 mb-2 fw-medium"><Link href={'/cart'} style={{color:'black',textDecoration:'none'}}><span>Cart</span></Link></li>
-                <li className=" fs-6 mb-2 fw-medium"><Link href={'/checkout'} style={{color:'black',textDecoration:'none'}}><span>Check Out</span></Link></li>
+                <li className=" fs-6 mb-2 fw-medium"><span><Link href={'/wishlist'} style={{color:'black',textDecoration:'none'}}>Wishlist</Link></span></li>
+                <li className=" fs-6 mb-2 fw-medium"><span><Link href={'/cart'} style={{color:'black',textDecoration:'none'}}>Cart</Link></span></li>
+                <li className=" fs-6 mb-2 fw-medium"><span><Link href={'/checkout'} style={{color:'black',textDecoration:'none'}}>Check Out</Link></span></li>
             </ul>
 
             <ul className="p-1">
