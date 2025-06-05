@@ -1,15 +1,37 @@
 'use client';
+import axios from "axios";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { FaBuilding } from "react-icons/fa";
 import { IoIosCall } from "react-icons/io";
 import { MdOutlineEmail } from "react-icons/md";
 
 export default function page() {
+    let apiUrl=process.env.NEXT_PUBLIC_API_URL;
     let[check,setCheck]=useState({
         name:null,email:null,number:null
     })
+    let[contact,setContact]=useState(null);
+
+    let getData= ()=>{
+          axios.get(`${apiUrl}/company/view`)
+         .then((res)=>{
+            setContact(
+            {
+                companyMap:res.data.viewData[0].companyMap,
+                companyAddress:res.data.viewData[0].companyAddress,
+                companyEmail:res.data.viewData[0].companyEmail,
+                companyMobile:res.data.viewData[0].companyMobile
+            })
+         })
+         .catch((err)=>{
+            console.log(err);
+         })
+    }
+    useEffect(()=>{
+        getData();
+    },[])
   return (
     <>
            <Container fluid className="border-bottom py-5 px-0 mb-5">
@@ -21,7 +43,7 @@ export default function page() {
 
        <Container fluid className="py-4">
            <Container className="border p-0">
-           <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3577.625912922732!2d73.02805847520123!3d26.273801877033783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39418d6124914e7b%3A0x554409fadcb37085!2sLAXMI%20TOWER!5e0!3m2!1sen!2sin!4v1745144783502!5m2!1sen!2sin" width="100%" height="450"  allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade">
+           <iframe src={contact?.companyMap} width="100%" height="450"  allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade">
            </iframe>
            </Container>
        </Container>
@@ -37,13 +59,13 @@ export default function page() {
                             <h3 className="fw-bold">Contact Us</h3>
                          </li>
                          <li className="pb-2 border-bottom mb-2 d-flex align-items-center gap-2 ">
-                              <FaBuilding/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}> Address : WsCubte Tech, Ratanada, Jodhpur</p>
+                              <FaBuilding/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}>{contact?.companyAddress}</p>
                          </li>
                          <li className="pb-2 border-bottom mb-2 d-flex align-items-center gap-2 ">
-                              <IoIosCall/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}> 9781234560</p>
+                              <IoIosCall/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}>{contact?.companyMobile}</p>
                          </li>
                          <li className="pb-2 border-bottom mb-2 d-flex align-items-center gap-2 ">
-                              <MdOutlineEmail/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}>furniture@gmail.com</p>
+                              <MdOutlineEmail/><p className="fw-bold" style={{position:'relative',top:'5.5px'}}>{contact?.companyEmail}</p>
                          </li>
                      </ul>
                    </div>

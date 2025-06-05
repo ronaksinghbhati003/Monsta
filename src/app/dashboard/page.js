@@ -1,11 +1,18 @@
 "use client";
+import axios from "axios";
 import gsap from "gsap";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Col, Container, Form, Row, Table } from "react-bootstrap";
-
+import { useSelector } from "react-redux";
+import { ToastContainer, toast } from 'react-toastify';
 export default function page() {
+let  apiUrl=process.env.NEXT_PUBLIC_API_URL;
 let[dashboard,setDashboard]=useState(0);
+ let userData=useSelector(store=>store.loginStore.user);
+ let[form,setForm]=useState({});
+ let token=useSelector(store=>store.loginStore.token);
     useEffect(() => {
         let time = gsap.context(() => {
             let line = gsap.timeline();
@@ -40,9 +47,15 @@ let[dashboard,setDashboard]=useState(0);
                 duration: 0.5
             })
         })
+
+       
        
         return ()=>time.revert();
     },[])
+
+    useEffect(()=>{
+         if(userData==null)redirect('/login');
+    },[userData])
    
     let dashBoardItem=()=>{
         if(dashboard==0){
@@ -225,20 +238,76 @@ let[dashboard,setDashboard]=useState(0);
             )
         }
         else if(dashboard==4){
+        
+            let handleChange=(e)=>{
+                setForm({...form,[e.target.name]:e.target.value});
+            }
+
+            let changePassword=(event)=>{
+                event.preventDefault();
+                if(form.currentPassword!=form.newPassword){
+                    if(form.newPassword==form.confirmPassword){
+                         axios.post(`${apiUrl}/login/changepassword`,form,{
+                            headers:{
+                                Authorization:`Bearer ${token}`,
+                                'Content-Type':'application/json'
+                            }
+                         })
+                            .then(res=>{
+                                  if(res.data.status){
+                                    toast.success(res.data.msg,{
+                                        position:"top-center",
+                                        theme:"dark",
+                                        autoClose:1500
+                                    })
+                                    event.target.reset();
+                                  }
+                                  else{
+                                  toast.error(res.data.msg,{
+                                     position:"top-center",
+                                     theme:"dark",
+                                     autoClose:1500
+                                    })
+                                  }
+                            })
+                            .catch(err=>{
+                                console.log(err);
+                            })
+                    }
+                    else{
+                        toast.error("Confirm Password did not match with new password",{
+                            position:"top-center",
+                            theme:"dark",
+                            autoClose:1500
+                        })
+                    }
+                }
+                else{
+                    toast.error("New Password diffrent from Current Password",{
+                        position:"top-center",
+                        theme:"dark",
+                        autoClose:1500
+                    })
+                   
+                }
+
+               
+            }
             return(
                 <>
-                  <Form className="border p-2">
+                <ToastContainer/>
+                  <Form className="border p-2" onSubmit={changePassword}>
                    <Form.Group className="mb-3">
                                 <Form.Label className="fw-bold mb-2">Current Password</Form.Label>
-                                <Form.Control type="password"></Form.Control>
+                                <Form.Control type="password" name="currentPassword" onChange={handleChange}></Form.Control>
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label className="fw-bold mb-2">New Password</Form.Label>
-                                <Form.Control type="password"></Form.Control>
+                                <Form.Control type="password" name="newPassword" onChange={handleChange}></Form.Control>
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label className="fw-bold mb-2">Confirm Password</Form.Label>
-                                <Form.Control type="password"></Form.Control>
+                                <Form.Control type="password" name="confirmPassword" onChange={handleChange}></Form.Control>
                             </Form.Group>
                             <div className="d-flex justify-content-end">
                                 <button className="py-2 px-4 text-white rounded fw-bold" style={{backgroundColor:'burlywood '}}>Change Password</button>
@@ -282,3 +351,5 @@ let[dashboard,setDashboard]=useState(0);
         </>
     )
 }
+
+

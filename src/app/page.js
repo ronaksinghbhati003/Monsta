@@ -11,6 +11,7 @@ import { FaEarthAsia } from "react-icons/fa6";
 import { MdAccessTime } from "react-icons/md";
 
 
+import axios from "axios";
 import Slider from "react-slick";
 import BestSellingProduct from "./common/BestSellingProduct";
 import CustomerReview from "./common/CustomerReview";
@@ -19,7 +20,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   let[stateManage,setStateManage]=useState(0);
-
+  let[product,setProduct]=useState([]);
+  let[staticPath,setStaticPath]=useState('');
+  let apiUrl=process.env.NEXT_PUBLIC_API_URL;
+  
 
   let settings={
     dots:true,
@@ -138,7 +142,6 @@ export default function Home() {
        scrollTrigger:{
            trigger:cart_item.current,
            start:'-15% 40%',
-           markers:true
        }  
     });
     })
@@ -147,6 +150,23 @@ export default function Home() {
   },[])
 
 
+  let getData=()=>{
+    axios.get(`${apiUrl}/home/view`)
+    .then((res)=>{
+      setProduct(res.data.homeProduct);
+      setStaticPath(res.data.staticPath);
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+  }
+  
+
+  useEffect(()=>{
+      getData();
+  },[])
+  
+  
   let showItems=()=>{
     if(stateManage==0)
     {
@@ -699,7 +719,7 @@ export default function Home() {
         </Container>
         
         
-        <BestSellingProduct/>
+        <BestSellingProduct   product={product} staticPath={staticPath}/>
 
         <Container fluid className="py-3 promise-section-fullWidth">
            <Container className="promise-section py-4">

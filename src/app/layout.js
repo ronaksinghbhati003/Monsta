@@ -1,5 +1,7 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import Footer from "./common/Footer";
+import Header from "./common/Header";
 import MainLayout from "./common/MainLayout";
 import "./globals.css";
 import "./media.css";
@@ -18,7 +20,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <MainLayout>
-        {children}
+          <Header/>
+          {children}
+        <Footer/>
         </MainLayout>
       </body>
     </html>

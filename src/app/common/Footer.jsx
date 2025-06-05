@@ -1,44 +1,63 @@
 "use client";
 
+import axios from "axios";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTelegram, FaTwitter, FaYoutube } from "react-icons/fa";
 
 
 export default function Footer() {
+let[contact,setContact]=useState([]);
+   let getData=()=>{
+      let apiUrl=process.env.NEXT_PUBLIC_API_URL;
+      axios.get(`${apiUrl}/company/view`)
+      .then(res=>{
+        setContact(res.data.viewData);
+      })
+      .catch(err=>{
+        console.log(err);
+      })
+    }
+
+    useEffect(()=>{
+         getData();
+    },[])
   return (
     <Container fluid className="py-5">
         <Container className=" d-flex justify-content-between flex-wrap  gap-3" >
             <ul className="p-1 deskstop-footer-menu">
                 <h3 className="  mb-4 fw-bold">Contact Us</h3>
-                <li className=" fs-6 mb-2 fw-medium"><span>Address: Claritas est etiam processus dynamicus</span></li>
-                <li className=" fs-6 mb-2 fw-medium"><span>Phone: 9781234560</span></li>
-                <li className=" fs-6 mb-2 fw-medium"><span>Email: furniture@gmail.com</span></li>
+                <li className=" fs-6 mb-2 fw-medium"><span>Address: {contact[0]?.companyAddress}</span></li>
+                <li className=" fs-6 mb-2 fw-medium"><span>Phone: {contact[0]?.companyMobile}</span></li>
+                <li className=" fs-6 mb-2 fw-medium"><span>Email: {contact[0]?.companyEmail}</span></li>
                 <li className=" fs-6 mt-4 d-flex justify-content-evenly align-items-center">
-                    <Link href={"https://www.instagram.com/?hl=en"} target="_blank">
-                    <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaFacebookF style={{fontSize:'20px',color:'black'}}/>
+                     <div className=" social-media border d-flex justify-content-center align-items-center">
+                        <a href={contact[0]?.companyFacebook} target="_blank"> <FaFacebookF style={{fontSize:'20px',color:'black'}}/></a>
                     </div>
-                    </Link>
+                    
+
+                    
+
 
                     <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaInstagram style={{fontSize:'20px',color:'black'}}/>
-                    </div>
-
-                    <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaTwitter style={{fontSize:'20px',color:'black'}}/>
+                         <a href={contact[0]?.companyInstagram} target="_blank"> <FaInstagram style={{fontSize:'20px',color:'black'}}/></a>
                     </div>
 
                     <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaLinkedinIn style={{fontSize:'20px',color:'black'}}/>
+                         <a href={contact[0]?.companyTwitter} target="_blank"><FaTwitter style={{fontSize:'20px',color:'black'}}/></a>
                     </div>
 
                     <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaYoutube style={{fontSize:'20px',color:'black'}}/>
+                         <a href={contact[0]?.companyLinkedin} target="_blank"><FaLinkedinIn style={{fontSize:'20px',color:'black'}}/></a>
                     </div>
 
                     <div className="social-media border d-flex justify-content-center align-items-center">
-                         <FaTelegram style={{fontSize:'20px',color:'black'}}/>
+                         <a href={contact[0]?.companyYoutube} target="_blank"><FaYoutube style={{fontSize:'20px',color:'black'}}/></a>
+                    </div>
+
+                    <div className="social-media border d-flex justify-content-center align-items-center">
+                         <a href={contact[0]?.companyTelegram} target="_blank" ><FaTelegram style={{fontSize:'20px',color:'black'}}/></a>
                     </div>
  
                </li>

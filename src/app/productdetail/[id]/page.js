@@ -1,7 +1,9 @@
 'use client';
 import RelatedProduct from "@/app/common/RelatedProduct";
 import UpSellProduct from "@/app/common/UpSellProduct";
+import axios from "axios";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { MdOutlineKeyboardArrowLeft, MdOutlineKeyboardArrowRight } from "react-icons/md";
@@ -41,6 +43,9 @@ function PreArrow(prop){
 }
 export default function page() {
     let img=useRef(null);
+    let{id}=useParams();
+    let apiUrl=process.env.NEXT_PUBLIC_API_URL;
+    
     let settings = {
         dots: false,
         infinite: true,
@@ -51,6 +56,18 @@ export default function page() {
         nextArrow:<NextArrow/>,
         prevArrow:<PreArrow/>
       };
+
+     let getData=()=>{
+      axios.get(`${apiUrl}/home/productdetail/${id}`)
+      .then((res)=>{
+        console.log(res);
+      })
+      .catch((err)=>{
+        console.log(err);
+      })
+     }
+
+
     useEffect(()=>{
         img.current.addEventListener("mousemove",(e)=>{
            let x=(e.offsetX*100/img.current.offsetWidth);
@@ -58,6 +75,8 @@ export default function page() {
            img.current.style.setProperty('--x',x + '%');
            img.current.style.setProperty('--y',y + '%');
         })
+
+        getData();
     },[])
   return (
     <>

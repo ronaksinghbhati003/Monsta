@@ -1,12 +1,12 @@
 'use client'
-import { createContext } from 'react';
+import { Provider } from "react-redux";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
-import Footer from './Footer';
-import Header from './Header';
-export let context=createContext(null);
-export default function MainLayout({children}) {
+import myStore from "../store/myStore";
 
+
+
+export default function MainLayout({children}) {
   /*useEffect(()=>{
          let color=['linear-gradient(to right, #8d6e63, #ffffff)',
           ' linear-gradient(to right, #deb887, #ffffff)',
@@ -27,11 +27,9 @@ export default function MainLayout({children}) {
   
   return (
       
-         <context.Provider value={null}>
-          <Header/>
-          {children}
-          <Footer/>
-          </context.Provider>
+         <Provider store={myStore}>
+           {children}
+         </Provider>
     
   )
 }

@@ -267,9 +267,10 @@ body{
   right:-500px;
   background: white;
   border: 1px solid black;
-  min-width: 380px;
+  max-width:380px;
   z-index: 100;
-  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: scroll;
 }
 .header-cart-menu-show{
   right:0%;
@@ -482,12 +483,12 @@ overflow: hidden;
 }
 .slick-arrow.slick-prev {
   position: absolute;
-  top:-14%;
+  top:-10.5%;
   left:95%;
 }
 .slick-arrow.slick-next{
   position: absolute;
-  top:-14%;
+  top:-10.5%;
   left: 97%;
 }
 .slick-arrow.slick-next::before{
@@ -502,6 +503,7 @@ overflow: hidden;
 }
 .slider-products{
   transition: 0.5s;
+  min-height: 400px;
 }
 .slider-products:hover{
   transform: scale(1.03);
@@ -699,4 +701,86 @@ body{
 .wishlist-heading-data{
   background-color: rgba(128, 128, 128, 0.199) !important;
   border: 2px solid burlywood !important;
+}
+.thanks>h3{
+  color: burlywood;
+  line-height:40px;
+}
+.thanks-button-parent{
+  display: flex;
+  justify-content: center;
+}
+.thanks-button-parent button{
+  padding: 5px 20px;
+  font-weight: bold;
+  border-radius:5px;
+  background: linear-gradient(to right, burlywood 50% ,white);
+}
+.forget-pass-parent{
+  display: flex;
+  justify-content: center;
+}
+.forget-pass-form{
+   width:500px;
+   max-width: 500px;
+  border: 1px solid black;
+  background-color: rgb(231, 201, 163);
+}
+.reset-pass-button{
+   padding: 5px 20px;
+  font-weight: bold;
+  color: black;
+  border-radius:5px;
+  background: linear-gradient(to right ,white);
+}
+.loading{
+  background-color: rgba(128, 128, 128, 0.608);
+}
+.page-not-found{
+  color: burlywood;
+}
+.remove-decoration{
+  color: burlywood !important;
+  font-weight: bold;
+}
+.view-cart-table{
+  width: 100%;
+}
+.view-cart-table-heading{
+  border: 1px solid black;
+  text-align: center;
+  border-radius: 10px;
+  padding: 5px 0px;
+}
+.view-cart-table-button{
+  padding: 5px 20px;
+  border-radius: 10px;
+  background: burlywood;
+  color: white;
+  font-weight: bold;
+  font-size: 16px !important;
+}
+.view-cart-table-body{
+  text-align: center;
+  border: 1px solid black;
+  padding: 5px 0px;
+  font-size: 20px;
+}
+.google-icon-parent{
+  border: 1px solid black;
+  margin: 20px auto;
+  text-align: center;
+  max-width: 300px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 0.5px 0.5px black;
+  cursor: pointer;
+}
+.google-icon{
+  font-size: 28px;
+  padding: 5px 5px;
+}
+.google-icon::after{
+  content: 'Login with Google';
+  font-size: 20px !important;
+  margin-left: 10px;
 }
