@@ -1,20 +1,89 @@
 "use client";
+import axios from "axios";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import useRemoveCart from "../helper/removeCart.js";
+import { customQuantity, fetchCart, updateCart } from "../slice/cartSlice";
 
 export default function ViewCart() {
+    let removeCart=useRemoveCart();
+    let dispatch=useDispatch();
     let cart=useSelector((store)=>store.cartStore.cart);
     let imagePath=useSelector((store)=>store.cartStore.imagePath);
     let subTotal=cart.reduce((acc,item)=>acc+(item.product.productSalePrice*item.quantity),0);
     let shipping=0;
     let total=subTotal+shipping;
+    let[customQyt,setCustomQyt]=useState({});
+     let quantityIncrease=(value,id)=>{
+        let item=cart.find(item=>item._id==id);
+        if(value=="minus"&&item.quantity<=1){
+            return;
+        }
+        dispatch(updateCart({value,id}));
+         axios.put(`${process.env.NEXT_PUBLIC_API_URL}/cart/updatequantity`,{
+            value,
+            id
+         })
+        .then(res=>{
+            //dispatch(fetchCart());
+        })
+        .catch(err=>{
+            console.log(err);
+        })
+     }
 
-    let removeCart=(id)=>{
-        alert(id);
+
+    useEffect(()=>{
+       let obj={};
+        cart.forEach(item=>{
+            obj[item._id]=item.quantity;
+        })
+        setCustomQyt(obj);
+        
+    },[cart])
+
+   /* useEffect(()=>{
+        dispatch(customQuantity(customQyt))
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cart/customcart`,{
+            customQyt
+        })
+        .then((res)=>{
+            console.log(res);
+            
+        })
+        .catch((err)=>{
+            console.log(err);
+        })
+    },[customQyt])*/
+    
+    let handleSubmit= async (id,value)=>{
+        const numericValue=parseInt(value);
+        setCustomQyt(prev=>({...prev,[id]:value}));
+        if(!isNaN(numericValue)){
+         dispatch(customQuantity({[id]:numericValue}));
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cart/customcart`,{
+            id,
+            value:numericValue
+        })
+        .then((res)=>{
+            console.log(res);
+            
+        })
+        .catch((err)=>{
+            console.log(err);
+        })
+      }
     }
+
+    useEffect(()=>{
+         dispatch(fetchCart());
+    },[dispatch])
   return (
      <>
+     <ToastContainer/>
       <Container fluid className="py-3">
          <Container className=" py-2">
             <Row>
@@ -37,7 +106,7 @@ export default function ViewCart() {
                           cart.map((item,index)=>{
                             let{color,product,quantity,_id}=item;
                             return(
-                            <tr>
+                            <tr key={index}>
                                      <td className="view-cart-table-body">{index+1}</td>
                                      <td className="view-cart-table-body">
                                          <img src={imagePath+product.productImage}  width={150} height={100}/>
@@ -51,9 +120,11 @@ export default function ViewCart() {
                                      </td>
                                      <td className="view-cart-table-body">
                                         <div className="d-flex gap-2">
-                                            <span style={{cursor:'pointer'}}>-</span>
-                                            <input type="text" style={{width:'30px',textAlign:'center'}} value={quantity}/>
-                                            <span style={{cursor:'pointer'}}>+</span>
+                                            <span style={{cursor:'pointer'}} onClick={()=>quantityIncrease("minus",_id)}>-</span>
+                                            <input type="text" style={{width:'30px',textAlign:'center'}} value={customQyt[_id]}  onChange={(e)=>{
+                                                handleSubmit(_id,e.target.value)
+                                            }}/>
+                                            <span style={{cursor:'pointer'}} onClick={()=>quantityIncrease("plus",_id)}>+</span>
                                         </div>
                                      </td>
                                      <td className="view-cart-table-body">{product.productSalePrice*quantity}</td>

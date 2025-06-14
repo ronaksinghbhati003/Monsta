@@ -269,7 +269,7 @@ body{
   border: 1px solid black;
   max-width:380px;
   z-index: 100;
-  max-height: 100vh;
+  height: 100vh;
   overflow-y: scroll;
 }
 .header-cart-menu-show{
@@ -680,7 +680,7 @@ body{
 .imgZoom img{
   width:100%;
   object-fit: contain;
-  object-position: 0 0;
+  object-position:0,0 ;
 }
 .imgZoom::after{
   content: '';
@@ -783,4 +783,21 @@ body{
   content: 'Login with Google';
   font-size: 20px !important;
   margin-left: 10px;
+}
+.header-dashboard{
+  margin-right: 10px;
+  border: 1px solid black;
+  padding: 5px 10px;
+  border-radius: 2px;
+  background: burlywood;
+  color: white;
+  cursor: pointer;
+}
+
+.orderDetail{
+  height: 500px;
+  overflow-y: scroll;
+  border: 1px solid gray;
+  background: linear-gradient(to right,white,whitesmoke );
+  border-radius: 5px;
 }

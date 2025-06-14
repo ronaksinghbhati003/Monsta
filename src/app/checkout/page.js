@@ -2,112 +2,202 @@
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Container, Form, Row, Table } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useRazorpay } from "react-razorpay";
+import { useDispatch, useSelector } from "react-redux";
 import { toast, ToastContainer } from 'react-toastify';
+import { fetchBilling } from "../slice/billingSlice";
+import { fetchCart } from "../slice/cartSlice";
 export default function page() {
-    const date=new Date();
-    let router=useRouter();
- let token=useSelector((store)=>store.loginStore.token);
-    let[shippingAddress,setshippingAddress]=useState({
-        firstName:'',
-        lastName:'',
-        companyName:'',
-        streetAddress:'',
-        apartMentAddress:'',
-        country:'',
-        state:'',
-        city:'',
-        postCode:'',
-        phone:'',
-        email:''
-     })
+    const date = new Date();
+    let router = useRouter();
+    const { error, isLoading, Razorpay } = useRazorpay();
+    let token = useSelector((store) => store.loginStore.token);
+    let billingInfo = useSelector((store) => store.billingStore.billingDetail);
+    let dispatch = useDispatch();
+    let [shippingAddress, setshippingAddress] = useState({
+        firstName: '',
+        lastName: '',
+        companyName: '',
+        streetAddress: '',
+        apartMentAddress: '',
+        country: '',
+        state: '',
+        city: '',
+        postCode: '',
+        phone: '',
+        email: ''
+    })
     let cart = useSelector((store) => store.cartStore.cart);
     let subTotal = cart.reduce((acc, item) => acc + (item.product.productSalePrice * item.quantity), 0);
     let discount = 0;
     let total = subTotal - discount;
 
-    let onHandle=(e)=>{
-         let{name,value}=e.target;
-         setshippingAddress({...shippingAddress,[name]:value});
+    let onHandle = (e) => {
+        let { name, value } = e.target;
+        setshippingAddress({ ...shippingAddress, [name]: value });
     }
 
-    let checkCart=()=>{
-        return cart.length>0;
+    let checkCart = () => {
+        return cart.length > 0;
     }
 
-    let onSubmit=(event)=>{
+    let onSubmit = (event) => {
         event.preventDefault();
-        try{
-          if(!checkCart()){
-              toast.warning("Your Cart is Empty Please Add to Cart Product",{
-                position:"top-center",
-                theme:"dark",
-              });
-              setTimeout(()=>{
-                router.push('/');
-              },2000)
-               return;
-          }
-        if(shippingAddress.firstName&&shippingAddress.lastName&&shippingAddress.companyName&&shippingAddress.streetAddress&&shippingAddress.country&&shippingAddress.state&&shippingAddress.city&&shippingAddress.postCode&&shippingAddress.phone&&shippingAddress.email){
-            let orderItems=cart;
-            let paymentMethod=event.target.payment.value;
-            let orderAmount=total;
-            let orderQty=cart.reduce((acc,item)=>acc+item.quantity,0);
-             let requestObj={
-                shippingAddress,
-                orderItems,
-                paymentMethod,
-                orderAmount,
-                orderQty,
-                shippingCharges:0,
-                orderDate: date.toLocaleDateString(),
-                orderTime:date.toLocaleTimeString(),
+        try {
+            if (!checkCart()) {
+                toast.warning("Your Cart is Empty Please Add to Cart Product", {
+                    position: "top-center",
+                    theme: "dark",
+                });
+                setTimeout(() => {
+                    router.push('/');
+                }, 2000)
+                return;
+            }
+            if (shippingAddress.firstName && shippingAddress.lastName && shippingAddress.companyName && shippingAddress.streetAddress && shippingAddress.country && shippingAddress.state && shippingAddress.city && shippingAddress.postCode && shippingAddress.phone && shippingAddress.email) {
+                let orderItems = cart;
+                let paymentMethod = event.target.payment.value;
+                let orderAmount = total;
+                let orderQty = cart.reduce((acc, item) => acc + item.quantity, 0);
+                let requestObj = {
+                    shippingAddress,
+                    orderItems,
+                    paymentMethod,
+                    orderAmount,
+                    orderQty,
+                    shippingCharges: 0,
+                    orderTime: date.toLocaleTimeString(),
 
-             }
-               axios.post(`${process.env.NEXT_PUBLIC_API_URL}/order/add-order`,requestObj,{
-                headers:{
-                    Authorization:`Bearer ${token}`
                 }
-               })
-               .then(res=>{
-                console.log(res);
-                if(res.data.status){
-                    toast.success(res.data.msg,{
-                        position:"top-center",
-                        theme:"dark",
-                        autoClose:1500
-                    })
-                    event.target.reset();
-                }
-               })
-               .catch(err=>{
-                console.log(err);
-               })
-        }
-        else{
-             for(let i in shippingAddress){
-                if(!shippingAddress[i]){
-                    if(i!=='apartMentAddress'){
-                        throw new Error(`Please Fill ${i} Field`);
+                axios.post(`${process.env.NEXT_PUBLIC_API_URL}/order/add-order`, requestObj, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-                       
+                })
+                    .then(res => {
+                        console.log(res);
+                        if (res.data.status == 1) {
+                            toast.success(res.data.msg, {
+                                position: "top-center",
+                                theme: "dark",
+                                autoClose: 1500
+                            })
+                        }
+                        if (paymentMethod == 2) {
+                            let { amount, id } = res.data.order;
+                            let { email, userName, userNumber } = res.data.preFill
+
+                            let options = {
+                                key: process.env.NEXT_PUBLIC_KEY,
+                                amount: amount,
+                                currency: "INR",
+                                name: "Monsta",
+                                description: "Monsta Ecommerce Website",
+                                order_id: id,
+                                handler: (response) => {
+                                    console.log(response);
+                                    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/order/paymentverify`, response)
+                                        .then((res) => {
+                                            console.log(res);
+                                            if (res.data.status == 1) {
+                                                toast.success(res.data.msg, {
+                                                    position: "top-center",
+                                                    theme: "dark",
+                                                    autoClose: 1500
+                                                })
+                                            }
+                                        })
+                                        .catch((err) => {
+                                            console.log(err);
+                                        })
+                                },
+                                preFill: {
+                                    name: userName,
+                                    email: email,
+                                    contact: userNumber,
+                                },
+                                theme: {
+                                    color: "#F37254",
+                                }
+                            }
+
+                            const razorpayNext = new Razorpay(options);
+                            razorpayNext.open();
+                        }
+                        event.target.reset();
+                        dispatch(fetchCart());
+                        /*setshippingAddress({
+                            firstName: '',
+                            lastName: '',
+                            companyName: '',
+                            streetAddress: '',
+                            apartMentAddress: '',
+                            country: '',
+                            state: '',
+                            city: '',
+                            postCode: '',
+                            phone: '',
+                            email: ''
+                        })*/
+
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+            }
+            else {
+                for (let i in shippingAddress) {
+                    if (!shippingAddress[i]) {
+                        if (i !== 'apartMentAddress') {
+                            throw new Error(`Please Fill ${i} Field`);
+                        }
+
+                    }
                 }
-             }  
             }
         }
-        catch(error){
-           toast.warning(error.message,{
-            position:"top-center",
-            theme:"dark",
-            autoClose:1500
-           })
+        catch (error) {
+            toast.warning(error.message, {
+                position: "top-center",
+                theme: "dark",
+                autoClose: 1500
+            })
         }
     }
+
+    useEffect(() => {
+        if (!token) router.push('/login')
+    }, [token])
+
+    useEffect(() => {
+        dispatch(fetchBilling());
+    }, [dispatch])
+
+    useEffect(() => {
+        setshippingAddress((prev) => {
+            return {
+                ...prev,
+                firstName:billingInfo?.billingFirstName,
+                lastName: billingInfo?.billingLastName,
+                companyName: '',
+                streetAddress:billingInfo?.billingAddress,
+                apartMentAddress:billingInfo?.billingApartmentAddress,
+                country: billingInfo?.billingCountry,
+                state: billingInfo?.billingState,
+                city: billingInfo?.billingCity,
+                postCode:billingInfo?.billingPostCode,
+                phone: billingInfo?.billingNumber,
+                email: billingInfo?.billingEmail,
+                companyName:billingInfo?.billingCompanyName
+            }
+        })
+    }, [billingInfo])
+
     return (
         <>
-        <ToastContainer/>
+            <ToastContainer />
             <Container fluid className="border-bottom py-5 px-0 mb-5">
                 <div>
                     <h2 className="text-center">CheckOut</h2>
@@ -153,10 +243,10 @@ export default function page() {
                                         <Form.Control type="text"></Form.Control>
                                     </Form.Group>
                                       */}
-                                     <Form.Group className="w-100 mb-3">
-                                            <Form.Label className="fw-bold">Country Name *</Form.Label>
-                                            <Form.Control type="text" value={shippingAddress.country} name="country" onChange={onHandle}></Form.Control>
-                                        </Form.Group>
+                                    <Form.Group className="w-100 mb-3">
+                                        <Form.Label className="fw-bold">Country Name *</Form.Label>
+                                        <Form.Control type="text" value={shippingAddress.country} name="country" onChange={onHandle}></Form.Control>
+                                    </Form.Group>
                                     <div className="d-flex justify-content-between flex-wrap  mb-3">
                                         <Form.Group className="w-50 mb-3">
                                             <Form.Label className="fw-bold">State *</Form.Label>
@@ -176,19 +266,19 @@ export default function page() {
                                         </Form.Group>
                                     </div>
                                     <Form.Group className="w-100 mb-3">
-                                         <Form.Label className="fw-bold">Email *</Form.Label>
-                                         <Form.Control type='email' value={shippingAddress.email} name="email" onChange={onHandle}></Form.Control>
-                                     </Form.Group>
-                                     <div className="d-flex align-items-center gap-3 mt-5">
-                                        <input type="radio" name="payment" id="paymentOnline" style={{width:'16px',height:'16px'}} value={2}/>
+                                        <Form.Label className="fw-bold">Email *</Form.Label>
+                                        <Form.Control type='email' value={shippingAddress.email} name="email" onChange={onHandle}></Form.Control>
+                                    </Form.Group>
+                                    <div className="d-flex align-items-center gap-3 mt-5">
+                                        <input type="radio" name="payment" id="paymentOnline" style={{ width: '16px', height: '16px' }} value={2} />
                                         <label htmlFor="paymentOnline">Razor Pay Online</label>
-                                     </div>
-                                     <p style={{fontSize:'14px',marginTop:'5px',paddingLeft:'10px'}}>Pay securely using Razorpay. We accept all major credit/debit cards,upi and net banking</p>
-                                      <div className="d-flex align-items-center gap-3 mt-3">
-                                        <input type="radio" name="payment" id="paymentOnline" style={{width:'16px',height:'16px'}} value={1}/>
+                                    </div>
+                                    <p style={{ fontSize: '14px', marginTop: '5px', paddingLeft: '10px' }}>Pay securely using Razorpay. We accept all major credit/debit cards,upi and net banking</p>
+                                    <div className="d-flex align-items-center gap-3 mt-3">
+                                        <input type="radio" name="payment" id="paymentOnline" style={{ width: '16px', height: '16px' }} value={1} />
                                         <label htmlFor="paymentOnline">Cash on Delivery</label>
-                                     </div>
-                             </div>
+                                    </div>
+                                </div>
                             </Col>
 
                             <Col lg={6}>

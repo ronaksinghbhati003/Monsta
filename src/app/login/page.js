@@ -120,13 +120,23 @@ export default function page() {
           username:user.displayName,
           useremail:user.email,
           verified:user.emailVerified,
-          userphone:user.phoneNumber??''
+          userphone:user.phoneNumber??null
          }
          
          axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login/google-login`,sendObj)
          .then((res)=>{
           console.log(res);
           dispatch(logInUser({token:res.data.token,userData:res.data.obj}));
+          if(res.data.status==1){
+            toast.success(res.data.msg,{
+              position:"top-center",
+              theme:"dark",
+              autoClose:1500
+            })
+            setTimeout(()=>{
+              setLoginNav(true);
+            },1500)
+          }
          })
          .catch((err)=>{
           console.log(err);
