@@ -194,10 +194,13 @@ body{
   left:0%;
   width: 100%;
 }
+.arrow-parent{
+  position: relative;
+}
 .deskstop-heade-menu-arrow{
   position: absolute;
   top:12px;
-  left:50px;
+  left:100%;
   transition: 1s;
 }
 .deskstop-header-menu>li:hover .deskstop-heade-menu-arrow{
@@ -800,4 +803,9 @@ body{
   border: 1px solid gray;
   background: linear-gradient(to right,white,whitesmoke );
   border-radius: 5px;
+}
+.inputNumber::-webkit-inner-spin-button,
+.inputNumber::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

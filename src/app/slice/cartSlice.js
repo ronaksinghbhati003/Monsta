@@ -31,6 +31,7 @@ let cartSlice=createSlice({
             state.imagePath=action.payload.imagePath
          }*/
         updateCart:function(state,reqData){
+          console.log("Update cart",reqData);
             let{value,id}=reqData.payload;
             let item=state.cart.find(item=>item._id==id);
             if(value=="plus"){

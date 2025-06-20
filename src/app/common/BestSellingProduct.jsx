@@ -1,6 +1,6 @@
 import axios from "axios";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Container } from "react-bootstrap";
 import Card from 'react-bootstrap/Card';
@@ -65,7 +65,7 @@ export default function BestSellingProduct({ product, staticPath }) {
 
                            return (
 
-                              <CardComponent item={item} index={index} staticPath={staticPath} key={index} apiUrl={apiUrl} />
+                              <CardComponent item={item} staticPath={staticPath} key={index} apiUrl={apiUrl} />
 
                            )
                         })
@@ -222,15 +222,15 @@ export default function BestSellingProduct({ product, staticPath }) {
 }
 
 
-function CardComponent({ item, staticPath, index, apiUrl }) {
-
+function CardComponent({ item, staticPath, apiUrl }) {
+    let router=useRouter();
    let [color, setColor] = useState('');
    let colorRef = useRef([]);
    let token = useSelector((store) => {
       return store.loginStore.token
    })
    let dispatch = useDispatch();
-   let { productActualPrice, productImage, productName, productSalePrice, subSubCategory, _id, productColor,quantity } = item;
+   let { productActualPrice, productImage, productName, productSalePrice, subSubCategory, _id, productColor,productStock } = item;
 
    let homePage = () => {
       redirect('/login');
@@ -240,14 +240,12 @@ function CardComponent({ item, staticPath, index, apiUrl }) {
    let addToCart = () => {
       if (token != '') {
          let obj = {
-            index,
             color,
             product: {
                _id,
                productSalePrice,
                productName,
                productImage,
-               quantity
             }
          }
          axios.post(`${apiUrl}/cart/addtocart`, obj, {
@@ -288,6 +286,44 @@ function CardComponent({ item, staticPath, index, apiUrl }) {
       }
    }
 
+   let addToWishList=()=>{
+      if(color){
+      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/addwishlist`,{
+         _id,
+         productName,
+         productSalePrice,
+         productImage,
+         productStock,
+         color
+      },{
+         headers:{
+            Authorization:`Bearer ${token}`
+         }
+      })
+      .then((res)=>{
+         if(res.data.status==1){
+            toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})
+         }
+         else if(res.data.status==2){
+            toast.warn(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})
+         }
+         else{
+            toast.error("Please Login First",{position:"top-center",theme:"dark",autoClose:1500});
+            setTimeout(()=>{
+               router.push('/login');
+            },2000)
+            
+         }
+      })
+      .catch((err)=>{
+         console.log(err);
+      })
+     }
+     else{
+      toast.warn("Please Select Color",{position:"top-center",theme:"dark",autoClose:1500})
+     }
+   }
+
 
    let selectColor = (id, code, index) => {
       if (!color) {
@@ -305,6 +341,7 @@ function CardComponent({ item, staticPath, index, apiUrl }) {
          })
       }
    }
+     
    return (
       <>
 
@@ -338,7 +375,7 @@ function CardComponent({ item, staticPath, index, apiUrl }) {
 
                   <div className="d-flex justify-content-center align-items-center gap-2">
                      <div className="featured-heart">
-                        <CiHeart />
+                        <CiHeart onClick={addToWishList} />
                      </div>
                      <div className="featured-addtocart" onClick={addToCart}>
                         Add To Cart
