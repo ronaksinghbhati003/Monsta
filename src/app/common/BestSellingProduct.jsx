@@ -7,8 +7,9 @@ import Card from 'react-bootstrap/Card';
 import { CiHeart } from "react-icons/ci";
 import { useDispatch, useSelector } from "react-redux";
 import Slider from "react-slick";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { fetchCart } from "../slice/cartSlice";
+import { fetchWishList } from "../slice/wishlistSlice";
 export default function BestSellingProduct({ product, staticPath }) {
    let apiUrl = process.env.NEXT_PUBLIC_API_URL;
    let settings = {
@@ -46,7 +47,7 @@ export default function BestSellingProduct({ product, staticPath }) {
    };
    return (
       <>
-         <ToastContainer />
+         
          <Container fluid className="py-4 border">
             <Container className="bestselling-product-container py-4">
                <div className="d-flex justify-content-between bestselling-product">
@@ -303,6 +304,7 @@ function CardComponent({ item, staticPath, apiUrl }) {
       .then((res)=>{
          if(res.data.status==1){
             toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})
+            dispatch(fetchWishList());
          }
          else if(res.data.status==2){
             toast.warn(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})

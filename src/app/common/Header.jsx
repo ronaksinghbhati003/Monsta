@@ -11,8 +11,9 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { RxCross1 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 import useRemoveCart from "../helper/removeCart";
-import { fetchCart } from "../slice/cartSlice";
+import { fetchCart, logOutClearCart } from "../slice/cartSlice";
 import { logOut } from "../slice/loginSlice";
+import { fetchWishList, logOutClearWishlist } from "../slice/wishlistSlice";
 
 
 export default function Header() {
@@ -20,7 +21,9 @@ export default function Header() {
   let token = useSelector((store) => store.loginStore.token);
   let dispatch = useDispatch();
   let cart = useSelector((store) => store.cartStore.cart)
+  let wishList=useSelector((store)=>store.wishList.wishListCart);
   let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  console.log(wishList);
 
   const [show, setShow] = useState(false);
   //const [living, setLiving] = useState(false);
@@ -32,11 +35,16 @@ export default function Header() {
   //let [sofaSet, setSofaSet] = useState(false);
   //let [jhula, setJhula] = useState(false);
   let [pages, setPages] = useState(false);
-  let [headerCart, setHeaderCart] = useState(JSON.parse(localStorage.getItem('headerCart')) ?? false);
+  let [headerCart, setHeaderCart] = useState(()=>{
+    if(typeof window!="undefined"){
+      return JSON.parse(localStorage.getItem('headerCart')) ?? false
+    }
+    return false;
+  })
+  
   let [contact, setContact] = useState([]);
   let [mega, setMega] = useState([]);
   let[toggle,setToggle]=useState({});
-   console.log(toggle);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -44,13 +52,14 @@ export default function Header() {
 
   let logo = useRef(null);
   let Offcanvaslogo = useRef(null);
+  console.log(logo);
 
   useEffect(() => {
     gsap.from(logo.current, {
       x: -500,
       opacity: 0,
       duration: 1,
-      delay: 1
+      delay: 1,
     })
 
     let header = document.querySelector('header')
@@ -71,6 +80,8 @@ export default function Header() {
     }
 
     window.addEventListener("scroll", headerAnimation)
+
+    return()=>window.removeEventListener("scroll",headerAnimation);
 
   }, [])
 
@@ -111,7 +122,6 @@ export default function Header() {
   let megaMenu = () => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/home/megamenu`)
       .then((res) => {
-        console.log(res);
         setMega(res.data.finalAns)
       })
       .catch(err => {
@@ -144,6 +154,7 @@ export default function Header() {
     if (token) {
       //getCartData();
       dispatch(fetchCart());
+      dispatch(fetchWishList());
     }
   }, [token])
   useEffect(() => {
@@ -165,7 +176,11 @@ export default function Header() {
             </div>
             <div className="header-top">
               {token ? <Link href={'/dashboard'} className="text-decoration-none"><span className="header-dashboard">My Dashboard</span></Link> : null}
-              {userData ? <span><span style={{ color: 'burlywood', fontSize: '16px', fontFamily: 'sans-serif', }} className="me-2">{userData.userName}</span><span style={{ cursor: 'pointer' }} onClick={() => dispatch(logOut())}>Log Out</span></span> : <Link href={'/login'} style={{ color: 'black', textDecoration: 'none' }}><span className="header-dashboard">Login/Register</span></Link>}
+              {userData ? <span><span style={{ color: 'burlywood', fontSize: '16px', fontFamily: 'sans-serif', }} className="me-2">{userData.userName}</span><span style={{ cursor: 'pointer' }} onClick={() => {
+                dispatch(logOut());
+                dispatch(logOutClearCart());
+                dispatch(logOutClearWishlist());
+                }}>Log Out</span></span> : <Link href={'/login'} style={{ color: 'black', textDecoration: 'none' }}><span className="header-dashboard">Login/Register</span></Link>}
             </div>
           </div>
         </Container>
@@ -189,7 +204,7 @@ export default function Header() {
                 <FaSearch className="searcg-logo" />
               </form>
               <div className="header-heart">
-                <Link href={'/wishlist'} className="text-decoration-none text-black"><FaHeart className="heart" /></Link>
+                <Link href={'/wishlist'} className="text-decoration-none text-black"><span className={`${wishList?.length>0?"wishList-length":''}`}>{wishList?.length>0?wishList?.length:''}</span><FaHeart className="heart" /></Link>
               </div>
               <div className="d-flex align-items-center header-cart gap-2" onClick={() => setHeaderCart(!headerCart)}>
                 <div className="cart-number d-flex justify-content-center align-items-center">{cart.length}</div>
@@ -238,7 +253,8 @@ export default function Header() {
                                   <MdKeyboardArrowDown className={`offcanvas-menu-arrow ${toggle[_id]==_id ? 'rotate' : ''}`} onClick={()=>handleToggle(_id)} />
                                   <ul className={`table-sub-menu ${toggle[_id]==_id ? 'show-table-sub-menu' : ''}`}>
                                     {subSubCategory.map((item,index)=>{
-                                      let{subSubCategoryName}=item;
+                                      console.log(item);
+                                      let{subSubCategoryName,_id}=item;
                                        return(
                                            <li>{subSubCategoryName}</li>
                                        )
@@ -361,20 +377,20 @@ export default function Header() {
                 mega.map((item, index) => {
                   let { categoryName, subCategory } = item;
                   return (
-                    <li className="arrow-parent">{categoryName}
+                    <li className="arrow-parent" key={index}>{categoryName}
                       <MdKeyboardArrowDown className="deskstop-heade-menu-arrow" />
                       <div className="deskstop-header-submenu d-flex gap-5">
                         {
                           subCategory.map((item, index) => {
                             let { subCategory, subSubCategory } = item;
                             return (
-                              <ul className="deskstop-header-submenu-list">
+                              <ul className="deskstop-header-submenu-list" key={index}>
                                 <h1>{subCategory}</h1>
                                 {
                                   subSubCategory.map((item, index) => {
-                                    let { subSubCategoryName } = item;
+                                    let { subSubCategoryName,_id } = item;
                                     return (
-                                      <li><Link href={'/cart'} style={{ color: "gray", textDecoration: "none" }}>{subSubCategoryName}</Link></li>
+                                      <li key={index}><Link href={`/cart/${_id}`} style={{ color: "gray", textDecoration: "none" }}>{subSubCategoryName}</Link></li>
                                     )
                                   })
                                 }
@@ -528,7 +544,7 @@ function HeaderCart({ data }) {
                         </div>
                       </div>
                       <div>
-                        <RxCross1 onClick={() => removeCart(_id)} />
+                        <RxCross1 onClick={() => removeCart(_id)} style={{cursor:'pointer'}} />
                       </div>
                     </div>
                   )

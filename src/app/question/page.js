@@ -1,69 +1,51 @@
 'use client'
+import axios from 'axios';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Accordion, Container } from 'react-bootstrap';
 export default function page() {
-    let[show,setShow]=useState(null);
+
+  const [data, setData] = useState([]);
+
+  let getFaq = () => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/faq/view`)
+      .then((res) => {
+        console.log(res);
+        setData(res.data.viewData);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+  useEffect(() => {
+    getFaq();
+  }, [])
   return (
     <>
 
-         <Container fluid className="border-bottom py-5 px-0 mb-5">
-                <div>
-                    <h2 className="text-center">Frequently Question</h2>
-                    <p className="text-center"><span style={{ cursor: 'pointer' }}><Link href={'/'} style={{ color: "gray", textDecoration: "none" }}>Home</Link></span>&gt;<span style={{ color: 'burlywood', cursor: 'pointer' }}>Frequently Question</span></p>
-                </div>
-          </Container>
+      <Container fluid className="border-bottom py-5 px-0 mb-5">
+        <div>
+          <h2 className="text-center">Frequently Question</h2>
+          <p className="text-center"><span style={{ cursor: 'pointer' }}><Link href={'/'} style={{ color: "gray", textDecoration: "none" }}>Home</Link></span>&gt;<span style={{ color: 'burlywood', cursor: 'pointer' }}>Frequently Question</span></p>
+        </div>
+      </Container>
 
-       <Container fluid className='py-5'>
+      <Container fluid className='py-5'>
         <Container>
-              <Accordion defaultActiveKey="0">
-                <Accordion.Item eventKey="0">
-                    <Accordion.Header className='faq-question'>Accordion Item</Accordion.Header>
-                    <Accordion.Body className='border'>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-                           minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                           aliquip ex ea commodo consequat. Duis aute irure dolor in
-                           reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                           pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                           culpa qui officia deserunt mollit anim id est laborum.
-                    </Accordion.Body>
+          <Accordion defaultActiveKey="0">
+            {data.map((item, index) => {
+              const { faqQuestion, faqAnswer } = item;
+              return (
+                <Accordion.Item eventKey={index} key={index}>
+                  <Accordion.Header className='faq-question'>{faqQuestion}</Accordion.Header>
+                  <Accordion.Body className='border'>{faqAnswer}
+                  </Accordion.Body>
                 </Accordion.Item>
-                <Accordion.Item eventKey="1">
-                    <Accordion.Header className='faq-question'>Accordion Item</Accordion.Header>
-                    <Accordion.Body className='border'>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-                           minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                           aliquip ex ea commodo consequat. Duis aute irure dolor in
-                           reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                           pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                           culpa qui officia deserunt mollit anim id est laborum.
-                    </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="2">
-                    <Accordion.Header className='faq-question'>Accordion Item</Accordion.Header>
-                    <Accordion.Body className='border'>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-                           minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                           aliquip ex ea commodo consequat. Duis aute irure dolor in
-                           reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                           pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                           culpa qui officia deserunt mollit anim id est laborum.
-                    </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="3">
-                    <Accordion.Header className='faq-question'>Accordion Item</Accordion.Header>
-                    <Accordion.Body className='border'>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-                           minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                           aliquip ex ea commodo consequat. Duis aute irure dolor in
-                           reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                           pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                           culpa qui officia deserunt mollit anim id est laborum.
-                    </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
+              )
+            })}
+          </Accordion>
         </Container>
-       </Container>
+      </Container>
     </>
   )
 }

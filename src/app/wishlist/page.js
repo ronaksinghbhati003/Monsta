@@ -1,21 +1,27 @@
 "use client";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Container, Table } from "react-bootstrap";
 import { RxCross2 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 import { toast, ToastContainer } from "react-toastify";
 import { fetchCart } from "../slice/cartSlice";
+import { fetchWishList } from "../slice/wishlistSlice";
 
 
 export default function page() {
+    let route=useRouter();
     let [wishlist, setWishlist] = useState([]);
     let [imagePath, setImagePath] = useState('');
     let token = useSelector((store) => store.loginStore.token);
     let cart=useSelector((store)=>store.cartStore.cart);
     let dispatch=useDispatch();
-    let getDataWishList = () => {
+    let wishlistCart=useSelector((store)=>store.wishList.wishListCart);
+    let wishListImagePath=useSelector((store)=>store.wishList.wishListImage);
+    console.log(cart);
+    /*let getDataWishList = () => {
         axios.post(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/viewwishlist`, {}, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -29,7 +35,7 @@ export default function page() {
             .catch((err) => {
                 console.log(err);
             })
-    }
+    }*/
 
     let deleteWishList=(id)=>{
         axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/deletewishlist`,{
@@ -42,7 +48,7 @@ export default function page() {
             console.log(res);
             if(res.data.status==1){
                 toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500});
-                getDataWishList();
+                dispatch(fetchWishList())
             }
         })
         .catch(err=>{
@@ -50,10 +56,11 @@ export default function page() {
         })
     }
 
-    let addToCart=({wishListName,wishListImage,wishListPrice,productColor})=>{
+    let addToCart=({wishListName,wishListImage,wishListPrice,productColor,productId})=>{
         let obj={
             color:productColor?._id,
             product:{
+                _id:productId,
                 productSalePrice:wishListPrice,
                 productName:wishListName,
                 productImage:wishListImage
@@ -80,13 +87,25 @@ export default function page() {
             })
     }
 
-    useEffect(() => {
-        getDataWishList();
-    }, [])
-
+   useEffect(() => {
+        //getDataWishList();
+        if(token){
+          dispatch(fetchWishList());
+        }  
+        else{
+            setTimeout(() => {
+                route.push('/login');
+            }, 1500);
+            toast.error("Please Login",{position:"top-center",theme:"dark"});
+           
+            
+        }
+    }, [dispatch,token])
     return (
         <>
         <ToastContainer/>
+        {token? 
+        <>
             <Container fluid className="border-bottom py-5 px-0 mb-5">
                 <div>
                     <h2 className="text-center">My Wishlist</h2>
@@ -109,10 +128,11 @@ export default function page() {
                         </thead>
                         <tbody>
                             {
-                                wishlist?.length >= 1 ?
-                                    wishlist?.map((item, index) => {
-                                        console.log(item);
+                                wishlistCart?.length >= 1 ?
+                                    wishlistCart?.map((item, index) => {
                                         let { wishListImage, wishListName, wishListPrice, wishListStock, productColor, _id,productId } = item;
+                                        let check=cart?.find((item)=>item?.product?._id==productId&&item?.color?._id==productColor?._id);
+                                        console.log(check);
                                         return (
                                             <tr>
                                                 <td className="p-3 border-1" style={{ minHeight: '150px' }}>
@@ -121,7 +141,7 @@ export default function page() {
                                                     </div>
                                                 </td>
                                                 <td className="border-1" style={{ minHeight: '150px' }}>
-                                                    <img src={imagePath + wishListImage} width={200} height={150} className="border " />
+                                                    <img src={wishListImagePath + wishListImage} width={200} height={150} className="border " />
                                                 </td>
                                                 <td className="p-3 border-1" style={{ minHeight: '150px' }}>
                                                     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '150px', }}>
@@ -140,12 +160,21 @@ export default function page() {
                                                 </td>
                                                 <td className="p-3 border-1" style={{ minHeight: '150px' }}>
                                                     <div className="d-flex justify-content-center align-items-center fw-bold" style={{ minHeight: '150px', }}>
+                                                        {
+                                                            check?
+                                                            <Link href={'/viewcart'} className="text-decoration-none">
+                                                            <button className="py-2 px-4 text-white fw-bold border-0 rounded text-black" style={{ backgroundColor: "burlywood"}}>View Cart</button>
+                                                            </Link>
+                                                        :
                                                         <button className="py-2 px-4 text-white fw-bold border-0 rounded" style={{ backgroundColor: "burlywood" }} onClick={()=>addToCart({
                                                             wishListImage,
                                                             wishListName,
                                                             wishListPrice,
-                                                            productColor
+                                                            productColor,
+                                                            productId
                                                         })}>Add to Cart</button>
+                                                        }
+                                                        
                                                     </div>
                                                 </td>
                                             </tr>
@@ -167,6 +196,11 @@ export default function page() {
                     </Table>
                 </Container>
             </Container>
+         </>
+            :<div className="login-message">Login First</div>
+           }
         </>
     )
-}
+   
+  }
+

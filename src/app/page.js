@@ -6,15 +6,16 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Col, Container, Row } from "react-bootstrap";
 import Card from 'react-bootstrap/Card';
 import { CiHeart } from "react-icons/ci";
-import { FaRegMoneyBillAlt } from "react-icons/fa";
-import { FaEarthAsia } from "react-icons/fa6";
-import { MdAccessTime } from "react-icons/md";
 
 
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
 import Slider from "react-slick";
+import { toast, ToastContainer } from "react-toastify";
 import BestSellingProduct from "./common/BestSellingProduct";
 import CustomerReview from "./common/CustomerReview";
+import { fetchCart } from "./slice/cartSlice";
+import { fetchWishList } from "./slice/wishlistSlice";
 gsap.registerPlugin(ScrollTrigger);
 
 
@@ -27,7 +28,16 @@ export default function Home() {
   let [color, setColor] = useState({});
   let [slider, setSlider] = useState([]);
   let [sliderImage, setSliderImage] = useState('');
+  let [whyChooseUs, setWhyChooseUs] = useState([]);
+  let [whyChooseUsImage1, setWhyChooseUpImage1] = useState('')
+  let[test,setTest]=useState([]);
+  let[testImage,setTestImage]=useState('');
   let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  let token = useSelector((store) => store.loginStore.token);
+  let cart = useSelector((store) => store.cartStore.cart);
+  let dispatch = useDispatch();
+  console.log(color);
+
 
   let settings = {
     dots: true,
@@ -119,22 +129,24 @@ export default function Home() {
         duration: 1,
         scrollTrigger: {
           trigger: homeBanner.current,
-          start: '0% 75%',
-          end: '100% 80%',
+          start: '180% 75%',
+          end: '300% 80%',
           scrub: 1,
+          
         }
       })
 
       gsap.from(homeBannerContent.current, {
         scale: 0,
         opacity: 0,
-        duration: 2,
+        duration: 1,
         delay: 1,
         scrollTrigger: {
           trigger: homeBanner.current,
-          start: '0% 75%',
-          end: '100% 80%',
+          start: '180% 75%',
+          end: '300% 80%',
           scrub: 1,
+          
         }
       })
     })
@@ -144,20 +156,22 @@ export default function Home() {
 
   useEffect(() => {
     if (featured.length > 0 && cart_item.current) {
-      let ctx = gsap.context(() => {
-        gsap.to(cart_item.current.querySelectorAll('.animation'), {
-          x: 0,
-          opacity: 1,
-          duration: 0.2,
-          stagger: 0.2,
-          scrollTrigger: {
-            trigger: cart_item.current,
-            start: '-15% 40%',
-          }
-        });
+      requestAnimationFrame(() => {
+        let ctx = gsap.context(() => {
+          gsap.to(cart_item.current.querySelectorAll('.animation'), {
+            x: 0,
+            opacity: 1,
+            duration: 0.2,
+            stagger: 0.2,
+            scrollTrigger: {
+              trigger: cart_item.current,
+              start: '-15% 40%',
+            }
+          });
+        })
+        return () => ctx.revert();
       })
 
-      return () => ctx.revert();
     }
   }, [featured]);
 
@@ -208,6 +222,85 @@ export default function Home() {
       })
   }
 
+  let addToCart = (productId, name, salePrice, image) => {
+    if (token != '') {
+      if (color[productId] == undefined) {
+        toast.warn("Please Select Color", {
+          position: "top-center",
+          theme: "dark",
+          autoClose: 1500
+        })
+        return;
+      }
+      let obj = {
+        color: color[productId],
+        product: {
+          _id: productId,
+          productName: name,
+          productSalePrice: salePrice,
+          productImage: image
+        }
+      }
+      console.log(obj);
+      axios.post(`${apiUrl}/cart/addtocart`, obj, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(res => {
+          if (res.data.status == 1) {
+            toast.success(res.data.msg, {
+              position: "top-center",
+              theme: "dark",
+              autoClose: 1500
+            })
+            dispatch(fetchCart());
+            setColor({});
+          }
+          else {
+            toast.warn(res.data.msg, {
+              position: "top-center",
+              theme: "dark",
+              autoClose: 1500
+            })
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    }
+    else {
+      toast.warn("Please Login First", {
+        position: "top-center",
+        theme: "dark",
+        autoClose: 1500
+      })
+    }
+  }
+
+
+  let whyChooseUsData = () => {
+    axios.get(`${apiUrl}/home/whychooseus`)
+      .then((res) => {
+        setWhyChooseUs(res.data.whyChooseUs);
+        setWhyChooseUpImage1(res.data.whyChooseUsImage);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
+  let testimoanial=()=>{
+    axios.get(`${apiUrl}/home/testimoanial`)
+    .then((res)=>{
+      setTest(res.data.testimoanialData);
+      setTestImage(res.data.testimoanialImage);
+    })
+    .catch(err=>{
+      console.log(err);
+    })
+  }
+
   useEffect(() => {
     getCartData();
   }, [stateManage])
@@ -215,7 +308,43 @@ export default function Home() {
   useEffect(() => {
     getData();
     getSlider();
+    whyChooseUsData();
+    testimoanial();
   }, [])
+
+
+  let addToWishList=(productId,productImage,productName,productSalePrice,productStock)=>{
+    if(color[productId]==''||color[productId]==undefined){
+      toast.error("Please Select Color",{position:"top-center",theme:"dark",autoClose:1500});
+      return;
+    }
+    let obj={
+      color:color[productId],
+      _id:productId,
+      productImage,
+      productName,
+      productSalePrice,
+      productStock
+    }
+    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/addwishlist`,obj,{
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    })
+    .then((res)=>{
+      console.log(res);
+      if(res.data.status==1){
+        toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500});
+        dispatch(fetchWishList());
+        setColor({});
+      }
+      else{
+        toast.warning(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})
+      }
+    })
+      console.log(color[productId]);
+       console.log(productId,productImage,productName,productSalePrice,productStock);
+  }
 
 
   let showItems = () => {
@@ -225,10 +354,11 @@ export default function Home() {
           <Row className="gx-3 gy-3" ref={cart_item}>
             {featured.length > 0 ?
               featured.map((item, index) => {
-                let { subCategory, productName, productColor, productActualPrice, productSalePrice, _id, productImage } = item;
+                console.log(item);
+                let { subCategory, productName, productColor, productActualPrice, productSalePrice, _id, productImage,productStock } = item;
                 return (
                   <Col lg={3} className="card-item animation" key={index}>
-                    <Card className="shadow-lg">
+                    <Card className="shadow-lg" style={{minHeight:'550px'}}>
                       <Link href={`/productdetail/${_id}`} className="text-decoration-none">
                         <Card.Img variant="top" src={imagePath + productImage} height={300} />
                       </Link>
@@ -255,11 +385,16 @@ export default function Home() {
                         </div>
                         <div className="d-flex justify-content-center align-items-center gap-2">
                           <div className="featured-heart">
-                            <CiHeart />
+                            <CiHeart onClick={()=>addToWishList(item._id,productImage,productName,productSalePrice,productStock)} />
                           </div>
-                          <div className="featured-addtocart">
-                            Add To Cart
-                          </div>
+                        
+        
+                              <div className="featured-addtocart" onClick={() => addToCart(item._id, productName, productSalePrice, productImage)}>
+                                Add To Cart
+                              </div>
+                          
+
+
                         </div>
                       </Card.Body>
                     </Card>
@@ -283,29 +418,18 @@ export default function Home() {
 
   return (
     <>
-      <Container fluid>
+    <ToastContainer />
+    <Container fluid>
         <div className="home-slick-slider" ref={triggerPoint}>
           <Slider {...settings}>
 
             {
               slider.map((item, index) => (
                 <div key={index}>
-                  <img src={sliderImage+item.sliderImage} height={500}/>
+                  <img src={sliderImage + item.sliderImage} height={530} />
                 </div>
               ))
             }
-            <div>
-              <img src="/slider1.jpg" />
-            </div>
-
-            <div>
-              <img src="/slider2.jpg" />
-            </div>
-
-            <div>
-              <img src="/slider3.jpg" />
-            </div>
-
           </Slider>
         </div>
       </Container>
@@ -371,43 +495,29 @@ export default function Home() {
         <Container className="promise-section py-4">
           <Row className="justify-content-center gy-5">
 
-            <Col lg={4} sm={6} className="d-flex justify-content-center">
-              <div className="free-shipping-promise">
-                <div className="free-shipping-promise-logo d-flex justify-content-center align-items-center">
-                  <FaEarthAsia className="earth" />
-                </div>
-                <h5>Free Shipping</h5>
-                <p>Free shipping on all order</p>
-              </div>
-            </Col>
-
-            <Col lg={4} sm={6} className="d-flex justify-content-center">
-              <div className="free-shipping-promise">
-                <div className="free-shipping-promise-logo d-flex justify-content-center align-items-center">
-                  <FaRegMoneyBillAlt className="earth" />
-                </div>
-                <h5>Money Return</h5>
-                <p>Back guarantee under 7 days</p>
-              </div>
-            </Col>
-
-            <Col lg={4} sm={6} className="d-flex justify-content-center">
-              <div className="free-shipping-promise">
-                <div className="free-shipping-promise-logo d-flex justify-content-center align-items-center">
-                  <MdAccessTime className="earth" />
-                </div>
-                <h5>Online Support</h5>
-                <p>Support online 24 hours a day</p>
-              </div>
-            </Col>
-
+            {
+              whyChooseUs.map((item, index) => {
+                let{whyChooseUsDescription,whyChooseUsImage,whyChooseUsName}=item;
+                return (
+                  <Col lg={4} sm={6} className="d-flex justify-content-center" key={index}>
+                    <div className="free-shipping-promise">
+                      <div className="free-shipping-promise-logo d-flex justify-content-center align-items-center">
+                          <img src={whyChooseUsImage1+whyChooseUsImage} width={100} height={80} className="border border-2 border-black rounded-circle" />
+                      </div>
+                      <h5>{whyChooseUsName}</h5>
+                      <p>{whyChooseUsDescription}</p>
+                    </div>
+                  </Col>
+                )
+              })
+            }
 
 
           </Row>
         </Container>
       </Container>
 
-      <CustomerReview />
+      <CustomerReview test={test} testImage1={testImage} />
 
       <Container fluid className="newsletter py-5 d-flex justify-content-center align-items-center">
         <div className="newsletter-email">

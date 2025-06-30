@@ -64,6 +64,9 @@ let cartSlice=createSlice({
               if(id){
                 state.cart=state.cart.filter((item)=>item._id!=id);
               }
+        },
+        logOutClearCart:function(state,reqData){
+          state.cart=[];
         }
     },
     extraReducers:(builder)=>{
@@ -82,5 +85,5 @@ let cartSlice=createSlice({
      }
 })
 
-export const {updateCart,customQuantity,deleteCart}=cartSlice.actions;
+export const {updateCart,customQuantity,deleteCart,logOutClearCart}=cartSlice.actions;
 export default cartSlice.reducer;

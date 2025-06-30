@@ -54,9 +54,9 @@ export default function page() {
   let [imagePath, setImagepath] = useState('');
   let[color,setColor]=useState('');
   let[qyt,setQyt]=useState(0);
-  console.log(imagePath);
-  console.log(detail);
-  console.log(color);
+  //console.log(imagePath);
+  //console.log(detail);
+  //console.log(color);
   let apiUrl = process.env.NEXT_PUBLIC_API_URL;
   let token=useSelector((store)=>store.loginStore.token);
   let cart=useSelector((store)=>store.cartStore.cart)
@@ -76,7 +76,6 @@ export default function page() {
   let getData = () => {
     axios.get(`${apiUrl}/home/productdetail/${id}`)
       .then((res) => {
-        console.log(res);
         setDetail(res.data.productDetail);
         setImagepath(res.data.staticPath);
       })
@@ -282,7 +281,7 @@ export default function page() {
         </Container>
       </Container>
 
-      <RelatedProduct />
+      <RelatedProduct related={detail?.subCategory?._id} parentId={detail?._id} />
 
       <UpSellProduct />
     </>
