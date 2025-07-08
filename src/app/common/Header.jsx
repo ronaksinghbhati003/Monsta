@@ -42,7 +42,10 @@ export default function Header() {
     return false;
   })
   
+  const[suggest,setSuggest]=useState([]);
   let [contact, setContact] = useState([]);
+  let[imagePath,setImagePath]=useState('');
+  let[loaded,setLoaded]=useState(false);
   let [mega, setMega] = useState([]);
   let[toggle,setToggle]=useState({});
 
@@ -96,7 +99,10 @@ export default function Header() {
   let getData = () => {
     axios.get(`${apiUrl}/company/view`)
       .then(res => {
+        console.log(res);
+        setImagePath(res.data.imagePath);
         setContact(res.data.viewData);
+        setLoaded(true);
       })
       .catch(err => {
         console.log(err);
@@ -148,6 +154,28 @@ export default function Header() {
     
   }
 
+  let getSerachData=(value)=>{
+   if(value!==''){
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/home/search`,{
+      params:{
+        value
+      }
+    })
+    .then((res)=>{
+      console.log(res);
+      if(res.data.status==1){
+        setSuggest(res.data.finalResult);
+      }
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+   }
+   else{
+    setSuggest([]);
+   }
+  }
+
 
   useEffect(() => {
     getData();
@@ -194,13 +222,15 @@ export default function Header() {
           <div className="d-flex justify-content-between align-items-center gap-2">
 
             <div>
-              <img src="/logo.png" alt='Logo' className="header-logo" ref={logo} />
+                <img src={imagePath+contact[0]?.companyLogo} alt='Logo' className={`header-logo ${loaded?'d-block':'d-none'}`} ref={logo} />
             </div>
 
 
-            <div className="d-flex justify-content-evenly align-items-center gap-3">
+            <div className="d-flex justify-content-evenly align-items-center gap-3  search-parent">
               <form className="header-search-box d-lg-block d-none">
-                <input type="text" placeholder="Search Product" className=" header-input" />
+                <input type="text" placeholder="Search Product" className=" header-input" onChange={(e)=>{
+                   getSerachData(e.target.value);
+                }} />
                 <FaSearch className="searcg-logo" />
               </form>
               <div className="header-heart">
@@ -211,6 +241,23 @@ export default function Header() {
                 <div className="pe-2 border-end"><FaShoppingCart /></div>
                 <div className="cart-price d-sm-block d-none">Rs:{cart.reduce((accumlator, item) => (accumlator + item.product.productSalePrice) * item.quantity, 0)}</div>
               </div>
+              {suggest.length>0?
+               <div className="search-child">
+                   <ul style={{margin:'0px',padding:'0px',maxHeight:'500px',overflowY:'scroll'}}>
+                    {suggest.length>0?
+                      suggest.map((item,index)=>{
+                        return(
+                          <Link className="text-decoration-none" href={`/cart/${(item?.search?._id)}`}><li className="search-li"><FaSearch style={{color:'black'}}/>{(item?.search?.colorName??'')+" "+(item?.search?.colorName?item?.productName:'')}{(item?.search?.subSubCategoryName??'')+" "+(item?.search?.subSubCategoryName?item?.productName:'')}</li></Link>
+                        )
+                      })
+                      :
+                      <li>No Data Found</li>
+                     }
+                   </ul>
+              </div> :
+              null 
+              }
+              
             </div>
 
 

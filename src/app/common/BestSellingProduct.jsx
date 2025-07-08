@@ -365,7 +365,7 @@ function CardComponent({ item, staticPath, apiUrl }) {
                   <Card.Text className="justify-content-center d-flex gap-3">
                      <span className="fw-bold"><s>Rs: {productActualPrice}</s></span><span style={{ fontSize: '18px', color: 'burlywood', fontWeight: 'bold' }}>Rs: {productSalePrice}</span>
                   </Card.Text>
-                  <div className=" my-3 d-flex justify-content-center gap-3">
+                  <div className={`my-3 d-flex  gap-3 product-color ${productColor.length<=2?'justify-content-center':''}`}>
                      {productColor.map((item, index) => {
                         let { colorName, _id, colorCode } = item;
                         return (

@@ -372,7 +372,7 @@ export default function Home() {
                         <Card.Text className="justify-content-center d-flex gap-3">
                           <span className="fw-bold"><s>Rs.{productActualPrice}</s></span><span style={{ fontSize: '18px', color: 'burlywood', fontWeight: 'bold' }}>Rs.{productSalePrice}</span>
                         </Card.Text>
-                        <div className="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3">
+                        <div className={`my-3 d-flex  gap-3 product-color ${productColor.length<=2?'justify-content-center':''}`}>
                           {productColor.map((colorItem, index) => {
                             let { colorName, colorCode, _id } = colorItem;
                             return (

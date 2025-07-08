@@ -11,42 +11,46 @@ import { Card, Col, Container, Row } from "react-bootstrap";
 import { CiHeart } from "react-icons/ci";
 import { TbGridDots } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
+import ResponsivePagination from 'react-responsive-pagination';
+import 'react-responsive-pagination/themes/classic-light-dark.css';
 import { toast, ToastContainer } from "react-toastify";
 gsap.registerPlugin(ScrollTrigger);
-export default function page({params}) {
-    let route=useRouter();
-    const id=params?.id?.[0]??'';
+export default function page({ params }) {
+    let route = useRouter();
+    const id = params?.id?.[0] ?? '';
     const [data, setData] = useState([]);
     const [imagePath, setImagePath] = useState('');
     const [catList, setCatList] = useState([]);
     const [colorList, setColorList] = useState([]);
     const [matList, setMatList] = useState([]);
-    const token=useSelector((store)=>store.loginStore.token);
-    const dispatch=useDispatch();
+    const [currentPage,setCurrentPage]=useState(1);
+    const[totalPages,setTotalPages]=useState(0);
+    const token = useSelector((store) => store.loginStore.token);
+    const dispatch = useDispatch();
     let [grid, setGrid] = useState(false);
     let [cartItem, setCartItem] = useState([]);
     let [material, setMaterial] = useState([]);
     let [color, setColor] = useState([]);
     let [color1, setColor1] = useState({});
     let animation = useRef(null);
-    const[minValue,setMinValue]=useState(0);
-    const[maxValue,setMaxValue]=useState();
-    const[select,setSelect]=useState({});
+    const [minValue, setMinValue] = useState(0);
+    const [maxValue, setMaxValue] = useState();
+    const [select, setSelect] = useState({});
     console.log(select);
 
-    let getHighestPrice=()=>{
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cartpage/highestprice`,{
-            params:{
+    let getHighestPrice = () => {
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cartpage/highestprice`, {
+            params: {
                 id
             }
         })
-        .then((res)=>{
-            if(res.data.status==1)
-            setMaxValue(res.data.highestPrice[0].productSalePrice);
-        })
-        .catch((err)=>{
-            console.log(err);
-        })
+            .then((res) => {
+                if (res.data.status == 1)
+                    setMaxValue(res.data.highestPrice[0].productSalePrice);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
     let getData = () => {
         axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cartpage/view`)
@@ -94,127 +98,129 @@ export default function page({params}) {
             })
     }*/
 
-     let selectColor1 = (productId, colorId) => {
-      setColor1((prev) => {
-         return {
-            ...prev,
-            [productId]: color1[productId] == colorId ? '' : colorId
-         }
+    let selectColor1 = (productId, colorId) => {
+        setColor1((prev) => {
+            return {
+                ...prev,
+                [productId]: color1[productId] == colorId ? '' : colorId
+            }
 
-      })
-   }
-
-   let addToCart=(productId,productName,productSalePrice,productImage)=>{
-       if(token!==''){
-        if(color1[productId]==''||color1[productId]==undefined){
-           toast.warn("Please Select Color",{position:"top-center",theme:"dark",autoClose:1500});
-           return;
-        }
-        let obj={
-            color:color1[productId],
-            product:{
-                _id:productId,
-                productName,
-                productSalePrice,
-                productImage
-            }
-        }
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cart/addtocart`,obj,{
-            headers:{
-                Authorization:`Bearer ${token}`
-            }
         })
-        .then((res)=>{
-            if(res.data.status==1){
-                toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500});
-                dispatch(fetchCart());
-                setColor1({});
-            }
-            else{
-                toast.warning(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500})
-            }
-            
-            
-        })
-        .catch((err)=>{
-            console.log(err);
-        })
-       }
-       else{
-        toast.warn("Please Login First",{position:"top-center",theme:"dark",autoClose:1500})
-        setTimeout(()=>{
-            route.push('/login');
-        },1500)
-       }
-   }
-
-   let addToWishList=(productId,productName,productSalePrice,productImage,productStock)=>{
-        if(token!==''){
-        if(color1[productId]==''||color1[productId]==undefined){
-            toast.warning("Select Color",{position:"top-center",theme:"dark",autoClose:1500});
-            return;
-        }
-        let obj={
-            color:color1[productId],
-            _id:productId,
-            productName,
-            productImage,
-            productSalePrice,
-            productStock
-
-        }
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/addwishlist`,obj,{
-            headers:{
-                Authorization:`Bearer ${token}`
-            }
-        })
-        .then((res)=>{
-            if(res.data.status==1){
-                toast.success(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500});
-                dispatch(fetchWishList());
-                setColor1({});
-            }
-            else{
-                toast.warning(res.data.msg,{position:"top-center",theme:"dark",autoClose:1500});
-            }
-            
-        })
-        }
-        else{
-            toast.warn("Please Login First",{position:"top-center",theme:"dark",autoClose:1500});
-            setTimeout(()=>{
-            route.push('/login');
-        },1500)
-        }
-   }
-
-   let cartFilter=()=>{
-    let obj={
-        catList,
-        colorList,
-        matList,
-        select,
-        minValue,
-        maxValue,
-        id
     }
-    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cartpage/cartfilter`,obj)
-    .then((res)=>{
-        if(res.data.status==1){
-           console.log(res);
-           setData(res.data.filterData);
-           setImagePath(res.data.imagePath);
-        }
-    })
-    .catch((err)=>{
-        console.log(err);
-    })
-   }
 
-   useEffect(()=>{
+    let addToCart = (productId, productName, productSalePrice, productImage) => {
+        if (token !== '') {
+            if (color1[productId] == '' || color1[productId] == undefined) {
+                toast.warn("Please Select Color", { position: "top-center", theme: "dark", autoClose: 1500 });
+                return;
+            }
+            let obj = {
+                color: color1[productId],
+                product: {
+                    _id: productId,
+                    productName,
+                    productSalePrice,
+                    productImage
+                }
+            }
+            axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cart/addtocart`, obj, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then((res) => {
+                    if (res.data.status == 1) {
+                        toast.success(res.data.msg, { position: "top-center", theme: "dark", autoClose: 1500 });
+                        dispatch(fetchCart());
+                        setColor1({});
+                    }
+                    else {
+                        toast.warning(res.data.msg, { position: "top-center", theme: "dark", autoClose: 1500 })
+                    }
+
+
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+        }
+        else {
+            toast.warn("Please Login First", { position: "top-center", theme: "dark", autoClose: 1500 })
+            setTimeout(() => {
+                route.push('/login');
+            }, 1500)
+        }
+    }
+
+    let addToWishList = (productId, productName, productSalePrice, productImage, productStock) => {
+        if (token !== '') {
+            if (color1[productId] == '' || color1[productId] == undefined) {
+                toast.warning("Select Color", { position: "top-center", theme: "dark", autoClose: 1500 });
+                return;
+            }
+            let obj = {
+                color: color1[productId],
+                _id: productId,
+                productName,
+                productImage,
+                productSalePrice,
+                productStock
+
+            }
+            axios.post(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/addwishlist`, obj, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then((res) => {
+                    if (res.data.status == 1) {
+                        toast.success(res.data.msg, { position: "top-center", theme: "dark", autoClose: 1500 });
+                        dispatch(fetchWishList());
+                        setColor1({});
+                    }
+                    else {
+                        toast.warning(res.data.msg, { position: "top-center", theme: "dark", autoClose: 1500 });
+                    }
+
+                })
+        }
+        else {
+            toast.warn("Please Login First", { position: "top-center", theme: "dark", autoClose: 1500 });
+            setTimeout(() => {
+                route.push('/login');
+            }, 1500)
+        }
+    }
+
+    let cartFilter = () => {
+        let obj = {
+            catList,
+            colorList,
+            matList,
+            select,
+            minValue,
+            maxValue,
+            id,
+            currentPage
+        }
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/cartpage/cartfilter`, obj)
+            .then((res) => {
+                if (res.data.status == 1) {
+                    console.log(res);
+                    setData(res.data.filterData);
+                    setImagePath(res.data.imagePath);
+                    setTotalPages(res.data.totalPages);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    }
+
+    useEffect(() => {
         console.log("Ronak");
         cartFilter();
-   },[catList,colorList,matList,select,maxValue,minValue])
+    }, [catList, colorList, matList, select, maxValue, minValue,currentPage])
 
 
     useEffect(() => {
@@ -250,7 +256,7 @@ export default function page({params}) {
 
     return (
         <>
-        <ToastContainer/>
+            <ToastContainer />
             <Container fluid className="border-bottom py-5 px-0 mb-5">
                 <div>
                     <h2 className="text-center">Product Listing</h2>
@@ -308,18 +314,18 @@ export default function page({params}) {
                                 <div className="mt-4">
                                     <p className="fw-semibold fs-3">Price Filter</p>
                                     <div className="d-flex gap-2">
-                                      <input type="number" className="priceFilter" value={minValue} onChange={(e)=>{
-                                        if(e.target.value<0){
-                                            return;
-                                        }
-                                        else{
-                                        setMinValue(e.target.value);
-                                        }
-                                      }} />
-                                      <span className="fw-bold">to</span>
-                                      <input type="number" className="priceFilter" value={maxValue} onChange={(e)=>{
+                                        <input type="number" className="priceFilter" value={minValue} onChange={(e) => {
+                                            if (e.target.value < 0) {
+                                                return;
+                                            }
+                                            else {
+                                                setMinValue(e.target.value);
+                                            }
+                                        }} />
+                                        <span className="fw-bold">to</span>
+                                        <input type="number" className="priceFilter" value={maxValue} onChange={(e) => {
                                             setMaxValue(e.target.value);
-                                      }} />
+                                        }} />
                                     </div>
                                 </div>
                             </div>
@@ -330,45 +336,45 @@ export default function page({params}) {
                             <div className="p-3">
                                 <div className="py-4 border d-flex justify-content-lg-end">
                                     <div className="d-flex gap-5 align-items-center flex-lg-nowrap flex-wrap justify-content-lg-center justify-content-center">
-                                        <TbGridDots style={{cursor:'pointer'}} onClick={() => setGrid(!grid)} />
+                                        <TbGridDots style={{ cursor: 'pointer' }} onClick={() => setGrid(!grid)} />
                                         <p style={{ position: 'relative', top: "8px" }}>Sort By :</p>
-                                        <select className="cart-select-box"  onChange={(e)=>{
-                                            const data=e.target.selectedOptions[0];
-                                            const finalData=data.getAttribute("data-name");
-                                            if(e.target.value=="clear"){
+                                        <select className="cart-select-box" onChange={(e) => {
+                                            const data = e.target.selectedOptions[0];
+                                            const finalData = data.getAttribute("data-name");
+                                            if (e.target.value == "clear") {
                                                 setSelect({});
                                             }
-                                            setSelect((prev)=>{
-                                                const newObj={...prev};
-                                                if(finalData=="featured"){
-                                                    newObj[finalData]=e.target.value;
+                                            setSelect((prev) => {
+                                                const newObj = { ...prev };
+                                                if (finalData == "featured") {
+                                                    newObj[finalData] = e.target.value;
                                                 }
-                                                else if(finalData=="lowToHigh"){
-                                                    newObj[finalData]=e.target.value
+                                                else if (finalData == "lowToHigh") {
+                                                    newObj[finalData] = e.target.value
                                                 }
-                                                else if(finalData=="ascending"){
-                                                    newObj[finalData]=e.target.value;
+                                                else if (finalData == "ascending") {
+                                                    newObj[finalData] = e.target.value;
                                                 }
-                                                else if(newObj.hasOwnProperty(finalData)){
-                                                     delete newObj[finalData];
+                                                else if (newObj.hasOwnProperty(finalData)) {
+                                                    delete newObj[finalData];
                                                 }
-                                                else{
-                                                    newObj[finalData]=e.target.value
+                                                else {
+                                                    newObj[finalData] = e.target.value
                                                 }
 
                                                 return newObj;
                                             })
-                                            
+
                                         }}>
                                             <option value="clear">Clear Filter</option>
-                                            <option style={{color:select["featured"]=='0'?'red':'black'}} value={0} data-name="featured">Featured Product</option>
-                                            <option style={{color:select["featured"]=='1'?'red':'black'}} value={1} data-name="featured">New Arrivals</option>
-                                            <option style={{color:select["featured"]=='2'?'red':'black'}} value={2} data-name="featured">On Sale</option>
-                                            <option style={{color:select["bestSelling"]=='true'?'red':'black'}} value={true} data-name="bestSelling">Best Sellings</option>
-                                            <option style={{color:select["lowToHigh"]=='1'?'red':'black'}} value={1} data-name="lowToHigh">Sort by price : Low to high</option>
-                                            <option style={{color:select["lowToHigh"]=='-1'?'red':'black'}} value={-1} data-name="lowToHigh">Sort by price : High to low</option>
-                                            <option style={{color:select["ascending"]=='1'?'red':'black'}} value={1} data-name="ascending">Product name : A to Z</option>
-                                            <option style={{color:select["ascending"]=='-1'?'red':'black'}} value={-1} data-name="ascending">Product name : Z to A</option>
+                                            <option style={{ color: select["featured"] == '0' ? 'red' : 'black' }} value={0} data-name="featured">Featured Product</option>
+                                            <option style={{ color: select["featured"] == '1' ? 'red' : 'black' }} value={1} data-name="featured">New Arrivals</option>
+                                            <option style={{ color: select["featured"] == '2' ? 'red' : 'black' }} value={2} data-name="featured">On Sale</option>
+                                            <option style={{ color: select["bestSelling"] == 'true' ? 'red' : 'black' }} value={true} data-name="bestSelling">Best Sellings</option>
+                                            <option style={{ color: select["lowToHigh"] == '1' ? 'red' : 'black' }} value={1} data-name="lowToHigh">Sort by price : Low to high</option>
+                                            <option style={{ color: select["lowToHigh"] == '-1' ? 'red' : 'black' }} value={-1} data-name="lowToHigh">Sort by price : High to low</option>
+                                            <option style={{ color: select["ascending"] == '1' ? 'red' : 'black' }} value={1} data-name="ascending">Product name : A to Z</option>
+                                            <option style={{ color: select["ascending"] == '-1' ? 'red' : 'black' }} value={-1} data-name="ascending">Product name : Z to A</option>
                                         </select>
                                         <p style={{ position: 'relative', top: "8px" }}>Showing 1-1 of 1 results</p>
                                     </div>
@@ -393,7 +399,7 @@ export default function page({params}) {
                                                                         <Card.Text className="justify-content-center d-flex gap-3">
                                                                             <span className="fw-bold"><s>Rs.{productActualPrice}</s></span><span style={{ fontSize: '18px', color: 'burlywood', fontWeight: 'bold' }}>Rs.{productSalePrice}</span>
                                                                         </Card.Text>
-                                                                        <div className="d-flex justify-content-center gap-3 flex-wrap mt-3 mb-3">
+                                                                        <div className={`d-flex py-2 gap-3 mt-3 mb-3 product-color ${productColor.length <= 2 ? 'justify-content-center' : ''}`}>
                                                                             {productColor?.map((colorItem, index) => {
                                                                                 let { _id, colorName, colorCode } = colorItem
                                                                                 return (
@@ -407,10 +413,10 @@ export default function page({params}) {
                                                                             })}
                                                                         </div>
                                                                         <div className="d-flex justify-content-center align-items-center gap-2">
-                                                                            <div className="featured-heart" onClick={()=>addToWishList(item._id,productName,productSalePrice,productImage,productStock)}>
+                                                                            <div className="featured-heart" onClick={() => addToWishList(item._id, productName, productSalePrice, productImage, productStock)}>
                                                                                 <CiHeart />
                                                                             </div>
-                                                                            <div className="featured-addtocart" onClick={()=>addToCart(item._id,productName,productSalePrice,productImage)}>
+                                                                            <div className="featured-addtocart" onClick={() => addToCart(item._id, productName, productSalePrice, productImage)}>
                                                                                 Add To Cart
                                                                             </div>
                                                                         </div>
@@ -434,6 +440,15 @@ export default function page({params}) {
 
 
                                 </div>
+
+                               <div className="py-3">
+                                <ResponsivePagination
+                                    current={currentPage}
+                                    total={totalPages}
+                                    onPageChange={setCurrentPage}
+                                />
+                                </div>
+                                
 
                             </div>
                         </Col>

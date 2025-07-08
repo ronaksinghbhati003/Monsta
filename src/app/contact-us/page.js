@@ -6,8 +6,11 @@ import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { FaBuilding } from "react-icons/fa";
 import { IoIosCall } from "react-icons/io";
 import { MdOutlineEmail } from "react-icons/md";
+import { useSelector } from "react-redux";
+import { toast, ToastContainer } from "react-toastify";
 
 export default function page() {
+    const token=useSelector((store)=>store.loginStore.token);
     let apiUrl=process.env.NEXT_PUBLIC_API_URL;
     let[check,setCheck]=useState({
         name:null,email:null,number:null
@@ -29,11 +32,40 @@ export default function page() {
             console.log(err);
          })
     }
+
+    let submitForm=(e)=>{
+             e.preventDefault();
+              const formData=new FormData(e.target);
+              const obj={
+                userName:formData.get("username"),
+                userEmail:formData.get("useremail"),
+                userNumber:formData.get('usermobile'),
+                userSubject:formData.get("subject"),
+                userMessage:formData.get("message")
+              }
+              console.log(obj);
+              axios.post(`${apiUrl}/home/enquiry`,obj,{
+                headers:{
+                    Authorization:`Bearer ${token}`
+                }
+              })
+              .then((res)=>{
+                if(res.data.status==1){
+                    toast.success(res.data.msg,{position:"top-center",theme:'dark',autoClose:1500});
+                    e.target.reset();
+                }
+              })
+              .catch((err)=>{
+                console.log(err);
+              })
+    }
+
     useEffect(()=>{
         getData();
     },[])
   return (
     <>
+      <ToastContainer/>
            <Container fluid className="border-bottom py-5 px-0 mb-5">
               <div>
                  <h2 className="text-center">Contact Us</h2>
@@ -72,11 +104,11 @@ export default function page() {
                 </Col>
 
                 <Col lg={6}>
-                    <Form>
+                    <Form onSubmit={submitForm}>
                         <h3 className="fw-bold mb-4">Tell US Your Question</h3>
                         <Form.Group className="mb-3">
                             <Form.Label className="fw-bold mb-3">Your Name (required)</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Name" required name="username" onChange={(event)=>{
+                            <Form.Control type="text"  placeholder="Enter Name" required name="username" onChange={(event)=>{
                                   setCheck({...check,name:event.target.value.trim()})
                             }}></Form.Control>
                             {check.name?'':<div className="text-danger mt-2" style={{fontSize:'14px'}}>Please Enter Value input can't be Empty</div>}
@@ -91,18 +123,18 @@ export default function page() {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label className="fw-bold mb-3">Your Mobile Number(required)</Form.Label>
-                            <Form.Control type="tel" placeholder="Enter Mobile Number" required name="usermobile" onChange={(event)=>{
+                            <Form.Control type="tel"  placeholder="Enter Mobile Number" required name="usermobile" onChange={(event)=>{
                                 setCheck({...check,number:event.target.value.trim()})
                             }}></Form.Control>
                         </Form.Group>
                         {check.number?'':<div className="text-danger mt-2" style={{fontSize:'14px'}}>Please Enter Value input can't be Empty</div>}
                         <Form.Group className="mb-3">
                             <Form.Label className="fw-bold mb-3">Subject(required)</Form.Label>
-                            <Form.Control type="text" placeholder="Subject" required name="subject"></Form.Control>
+                            <Form.Control type="text"  placeholder="Subject" required name="subject"></Form.Control>
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
                              <Form.Label>Your Message</Form.Label>
-                             <Form.Control as="textarea" rows={5} style={{resize:'none'}} placeholder="Enter Message" />
+                             <Form.Control as="textarea" name="message" rows={5} style={{resize:'none'}} placeholder="Enter Message" />
                        </Form.Group>
                        <Button type="submit" style={{backgroundColor:'black',color:"white"}} className="px-3 mt-2">Send</Button>
                     </Form>
